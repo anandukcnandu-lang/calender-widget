@@ -17,12 +17,23 @@ jobs:
           distribution: temurin
           java-version: '17'
 
+      - name: Locate Android SDK
+        run: |
+          SDKMANAGER=$(find /usr/local/lib/android -name sdkmanager -type f | head -n 1)
+          if [ -z "$SDKMANAGER" ]; then
+            echo "SDK manager not found"
+            exit 1
+          fi
+          echo "$(dirname "$SDKMANAGER")" >> $GITHUB_PATH
+          echo "/usr/local/lib/android/sdk/platform-tools" >> $GITHUB_PATH
+          echo "SDKMANAGER=$SDKMANAGER" >> $GITHUB_ENV
+
       - name: Accept Android licenses
-        run: yes | sdkmanager --licenses || true
+        run: yes | "$SDKMANAGER" --licenses || true
 
       - name: Install Android SDK
         run: |
-          sdkmanager "platform-tools" "platforms;android-35" "build-tools;35.0.0"
+          "$SDKMANAGER" "platform-tools" "platforms;android-35" "build-tools;35.0.0"
 
       - uses: gradle/actions/setup-gradle@v4
         with:
